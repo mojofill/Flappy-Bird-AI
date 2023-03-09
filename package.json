@@ -1,0 +1,25 @@
+{
+  "name": "2048",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx tsc --project tsconfig.json && browserify ./dist/index.js > ./dist/bundle.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mojofill/2048.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mojofill/2048/issues"
+  },
+  "homepage": "https://github.com/mojofill/2048#readme",
+  "dependencies": {
+    "browserify": "^17.0.0",
+    "typescript": "^4.9.5"
+  }
+}
