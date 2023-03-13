@@ -19,6 +19,9 @@ const time = {
     }
 }
 
+const dy_range = 150;
+const dx_range = 150;
+
 const init = (bird_x: number, spawnAmount: number, pipe_width: number, g: number, birds: Bird[], pipes: Pipe[]) => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -29,7 +32,7 @@ const init = (bird_x: number, spawnAmount: number, pipe_width: number, g: number
 
     // spawn birds
     for (let i = 0; i < spawnAmount; i++) {
-        const newBird = new Bird(bird_x, canvas.height / 2, 5, "white", ctx, g);
+        const newBird = new Bird(bird_x, canvas.height / 2, 10, "white", ctx, g, pipes);
         birds.push(newBird);
     }
 
@@ -38,20 +41,9 @@ const init = (bird_x: number, spawnAmount: number, pipe_width: number, g: number
     let spawn_x: number = bird_x + 500;
     const initalPipe: Pipe = new Pipe(spawn_x, pipe_width, 0.5 * canvas.height, ctx);
     pipes.push(initalPipe); // already has one in there
-    const gap_height = initalPipe.gap_height;
-    let index = 1;
-    let dy_range = 50;
-    let dx_range = 50;
+
     while (!extraPipeAdded) {
-        spawn_x += dx_range;
-        let spawn_y;
-        while (true) {
-            const rand_sign = Math.random() >= 0.5 ? -1 : 1;
-            spawn_y = pipes[index - 1].gap_y + rand_sign * dy_range;
-            if (spawn_y - gap_height > 0 && spawn_y < canvas.height) break;
-        }
-        const pipe = new Pipe(spawn_x, pipe_width, spawn_y, ctx);
-        pipes.push(pipe);
+        const pipe = spawnPipe(pipes);
         if (pipe.x >= canvas.width) extraPipeAdded = true;
     }
 
@@ -65,6 +57,25 @@ const loop = (birds: Bird[], pipes: Pipe[]) => {
 
     time.updateTime();
 
+    // render pipes
+    let existsExtra: boolean = false;
+
+    for (let i = 0; i < pipes.length; i++) {
+        const pipe = pipes[i];
+        pipe.render();
+        existsExtra = pipe.x > canvas.width;
+        if(pipe.move(time.dt)) { // returns true if the pipe x position < 0
+            pipes.splice(i, 1);
+            i--;
+        }
+    }
+
+    if (!existsExtra) {
+        // spawn new pipe
+        spawnPipe(pipes);
+    }
+
+    // render birds
     for (let i = 0; i < birds.length; i++) {
         const bird = birds[i];
         bird.render();
@@ -72,31 +83,23 @@ const loop = (birds: Bird[], pipes: Pipe[]) => {
         bird.think();
     }
 
-    let existsExtra: boolean = false;
-
-    for (let i = 0; i < pipes.length; i++) {
-        const pipe = pipes[i];
-        pipe.render();
-        pipe.move(time.dt);
-        existsExtra = pipe.x > canvas.width;
-    }
-
-    if (!existsExtra) {
-        // spawn new pipe
-        let spawn_y;
-        let dy_range = 50;
-        let dx_range = 50;
-        while (true) {
-            const rand_sign = Math.random() >= 0.5 ? -1 : 1;
-            spawn_y = pipes[pipes.length - 1].gap_y + rand_sign * dy_range;
-            if (spawn_y - pipes[0].gap_height > 0 && spawn_y < canvas.height) break;
-        }
-        const pipe = new Pipe(pipes[pipes.length - 1].x + dx_range, pipes[0].w, spawn_y, ctx);
-        pipes.push(pipe);
-    }
-
     requestAnimationFrame(() => loop(birds, pipes));
 };
+
+const spawnPipe = (pipes: Pipe[]) => {
+    let spawn_y;
+    while (true) {
+        const rand_sign = Math.random() >= 0.5 ? -1 : 1;
+        spawn_y = pipes[pipes.length - 1].gap_y + rand_sign * dy_range;
+        if (spawn_y - pipes[0].gap_height> 0 && spawn_y < canvas.height) {
+            console.log('height: ' + spawn_y)
+            break;
+        }
+    }
+    const pipe = new Pipe(pipes[pipes.length - 1].x + dx_range, pipes[0].w, spawn_y, ctx);
+    pipes.push(pipe);
+    return pipe;
+}
 
 const SPAWN_AMOUNT = 1;
 const X_POSITION = 0.33 * canvas.width;
