@@ -21,7 +21,8 @@ export default class Neuron {
         }
 
         sum += this.bias;
-        return sigmoid(sum);
+        this.value = sigmoid(sum);
+        return this.value;
     }
 
     // something about activations? rewatch the video
